@@ -85,15 +85,20 @@ def stations():
 def tobs():
      session=Session(engine)
 
-     #Query to find the most active station of year 2017
-     counts=session.query(Measurement.station,Station.name,func.count(Measurement.station)).join(Station,\
-     Measurement.station == Station.station).filter(func.strftime("%Y",Measurement.date)=="2017").\
-     group_by(Measurement.station).order_by(func.count(Measurement.station).desc())
+     #Query to find the most active station 
+     counts=session.query(Measurement.station,Station.name,func.count(Measurement.tobs)).join(Station,\
+     Measurement.station == Station.station).group_by(Measurement.station).\
+     order_by(func.count(Measurement.tobs).desc()).first()
      
      
     #Most active station details  
-     (id, name, count)=np.ravel(counts[0])
-    #print(f"The most active station is: {name} with id: {id} and count: {count}")
+     (id, name, count)=np.ravel(counts)
+
+    #Query to get the dates and temperature observations for the last year of data
+     last_year=session.query(Measurement.date,Measurement.tobs).filter(Measurement.station==id).filter(func.strftime("%Y",Measurement.date)=="2017").all()
+
+     print(f"The most active station is: {name} with id: {id} and count: {count}")
+     #Query to get the temperature observations for last year of data for most active station
      results=session.query(Measurement.tobs).filter(Measurement.station==id).filter(func.strftime("%Y",Measurement.date)=="2017").all()
      session.close()
      tobs_data= list(np.ravel(results))
